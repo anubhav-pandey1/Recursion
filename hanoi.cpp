@@ -23,6 +23,14 @@ long long ohanoi(int n, int start, int end) { // This can be used to print moves
   }
 }
 
+void towerOfHanoi (int n, char start, char dest, char helper) {
+    if (n == 1) {
+        cout << start << " -> " << dest << " using " << helper << endl;
+    }
+    towerOfHanoi(n-1, start, helper, dest);
+    cout << start << " -> " << dest << " using " << helper << endl;
+    towerOfHanoi(n-1, helper, dest, start);
+}
 
 int main() {
   long count = 0;
