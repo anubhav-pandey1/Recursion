@@ -35,8 +35,8 @@ string family_tree(ll n, ll K, string rootGender = "Male") {   // Top-down recur
     }                                                          // K also remains same since it falls in first half
     else {                                                     // Else if we go right since K > numChildrenGen/2
         string newRootGender = "Male";                         // If parent gender = F then subtree parent gender = M
-        if (rootGender = "Male") {                             // If parent gender = M then subtree parent gender = F
-            newRootGender = "Female;"                          // This is because we are going right
+        if (rootGender == "Male") {                             // If parent gender = M then subtree parent gender = F
+            newRootGender = "Female";                          // This is because we are going right
         }                                                      // K needs to be re-index to start from K/2 + 1
         return family_tree(n - 1, K - numChildrenGen / 2, newRootGender);
     }
