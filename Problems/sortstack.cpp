@@ -2,11 +2,7 @@
 using namespace std;
 
 void insertStack(stack<int>& s, int n) {
-    if (s.empty()) {
-        s.push(n);
-        return;
-    }
-    if (n >= s.top()) {
+    if (s.empty() || n >= s.top()) {       // Order of these conditions matters, this is correct
         s.push(n);
         return;
     }
