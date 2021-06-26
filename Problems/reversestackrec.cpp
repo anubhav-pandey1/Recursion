@@ -32,6 +32,31 @@ void reverseStack(stack<int>& s) {             // Delete and store bottom based 
     s.push(bottom);                            // Push the original bottom to the top of the reversed stack
 }
 
+// -------------------------------------------------------------------------------------------------------------------------------
+
+void insert_Bottom(stack<int>& s, int n) {     // Simpler, insertBottom() based implementation
+    if (s.empty()) {                           // Base condition: Just push N if stack is empty
+        s.push(n);
+        return;                                // Return back to previous call after pushing N
+    }
+
+    int top = s.top();                         // If not empty, store the top in a temp variable
+    s.pop();                                   // Remove the top to create a smaller I/P stack
+    insert_Bottom(s, n);                       // Insert N at the bottom of the smaller I/P stack
+    s.push(top);                               // Push the top back to the top after inserting N
+}
+
+void reverse_Stack(stack<int>& s) {            // Simpler, insertBottom() based reverseStack()
+    if (s.empty()) {                           // Base case: If stack is empty, there is nothing
+        return;                                // Simply return to previous/higher function call
+    }
+
+    int top = s.top();                         // If not empty, store the top in a temp variable
+    s.pop();                                   // Create a smaller I/P stack by removing the top
+    reverse_Stack(s);                          // Reverse the smaller stack
+    insert_Bottom(s, top);                     // Insert the previous top to the bottom of new stack
+}
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -53,7 +78,7 @@ int main() {
             st.push(ele);
         }
 
-        reverseStack(st);
+        reverse_Stack(st);
         stack<int> temp;
         for (int i = 0; i < size; i++) {
             temp.push(st.top());
