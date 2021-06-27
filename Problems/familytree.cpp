@@ -8,13 +8,13 @@ string familyTree(ll n, ll K) {                                // Bottom-up recu
         return "Male";
     }
 
-    if (familyTree(n - 1, ceil((float)K / 2)) == "Male") {     // If parent is male
-        if (K % 2)                                             // Odd child is male, even child female
-            return "Male";                                     // Ceil(K/2) gives K-value for parent
-        else                                                   // Recursion to find gender of parent
-            return "Female";
+    if (familyTree(n - 1, (int)ceil((double)K / 2.0)) == "Male") {
+        if (K % 2)                                             // If parent is male:
+            return "Male";                                     // Odd child is male, even child female
+        else                                                   // Ceil(K/2) gives K-value for parent
+            return "Female";                                   // Recursion to find gender of parent
     }
-    else {                                                     // If parent is female
+    else {                                                     // If parent is female:
         if (K % 2)                                             // Odd child is female, even child male
             return "Female";
         else
@@ -35,7 +35,7 @@ string family_tree(ll n, ll K, string rootGender = "Male") {   // Top-down recur
     }                                                          // K also remains same since it falls in first half
     else {                                                     // Else if we go right since K > numChildrenGen/2
         string newRootGender = "Male";                         // If parent gender = F then subtree parent gender = M
-        if (rootGender == "Male") {                             // If parent gender = M then subtree parent gender = F
+        if (rootGender == "Male") {                            // If parent gender = M then subtree parent gender = F
             newRootGender = "Female";                          // This is because we are going right
         }                                                      // K needs to be re-index to start from K/2 + 1
         return family_tree(n - 1, K - numChildrenGen / 2, newRootGender);
