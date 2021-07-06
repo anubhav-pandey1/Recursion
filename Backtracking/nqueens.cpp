@@ -1,23 +1,19 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-bool checkQueen(vector<int>& prevCols, int r, int c) { // 02, 1,3
+bool checkQueen(vector<int>& prevCols, int c) {
+    int r = prevCols.size();
     for (int rp = 0; rp < prevCols.size(); rp++) {
         int cp = prevCols[rp];
-        if (rp == r || cp == c) {
+        if (cp == c || (abs(rp - r) == abs(cp - c))) {
             return false;
-        }
-        else if (abs(rp - r) == abs(cp - c)) {
-            return false;
-        }
-        else {
-            continue;
         }
     }
     return true;
 }
 
-vector<string> createBoard (vector<int>& prevCols, int n) {
+vector<string> createBoard (vector<int>& prevCols) {
+    int n = prevCols.size();
     vector<string> board;
     for (int i = 0; i < n; i++) {
         string line(n, '.');
@@ -28,34 +24,30 @@ vector<string> createBoard (vector<int>& prevCols, int n) {
     return board;
 }
 
-void helperNQueens(int n, vector<vector<string>>& result, vector<int>& prevCols, int r = 0) {
+void helperNQueens(int n, vector<vector<string>>& result, vector<int>& prevCols, int r) {
     if (prevCols.size() == n) {
-        vector<string> board = createBoard(prevCols, n);
-        prevCols.clear();
-        r = 0;
+        vector<string> board = createBoard(prevCols);
+        prevCols.pop_back();
+        result.push_back(board);
         return;
     }
 
     for (int i = 0; i < n; i++) {
-        if (checkQueen(prevCols, r, i)) {
+        if (checkQueen(prevCols, i)) {
             prevCols.push_back(i);
-            r++;
-            helperNQueens(n, result, prevCols, r);
+            helperNQueens(n, result, prevCols, r + 1);
         }
-        continue;
     }
     r--;
     prevCols.pop_back();
-    return;
 }
 
 vector<vector<string>> solveNQueens(int numPieces) {
     vector<vector<string>> result;
-    vector<int> prevCols = {};
-    helperNQueens(numPieces, result, prevCols);
+    vector<int> prevCols;
+    helperNQueens(numPieces, result, prevCols, 0);
     return result;
 }
-
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -70,8 +62,7 @@ int main() {
     while (testNum--) {
         int numPieces;
         cin >> numPieces;
-        vector<int> pc = {0, 2};
-        cout << checkQueen(pc, 1, 3) << endl;
+
         vector<vector<string>> result = solveNQueens(numPieces);
         for (auto& vec : result) {
             for (string& str : vec) {
@@ -79,12 +70,39 @@ int main() {
             }
             cout << "---------" << endl;
         }
+
         cout << "................." << endl;
     }
     return 0;
 }
 
-// Alt implementation:
+// Test cases:
+
+// Inputs:
+
+// 2
+// 4
+// 1
+
+// Outputs:
+
+// .Q..
+// ...Q
+// Q...
+// ..Q.
+// ---------
+// ..Q.
+// Q...
+// ...Q
+// .Q..
+// ---------
+// .................
+// Q
+// ---------
+// .................
+
+
+// Alt implementation (Incorrect):
 
 // int numPieces;
 // map<int, string> mp;
