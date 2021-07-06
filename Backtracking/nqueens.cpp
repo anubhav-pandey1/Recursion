@@ -85,3 +85,59 @@ int main() {
 }
 
 // Alt implementation:
+
+// int numPieces;
+// map<int, string> mp;
+// string s(numPieces, '.');
+// for (int i = 0; i < numPieces; i++) {
+//     s[i] = 'Q';
+//     mp[i] = s;
+//     s[i] = '.';
+// }
+
+// bool checkLastRow(vector<string>& board, int c) {
+//     int r = board.size() - 1;
+//     int N = board[0].size();
+//     for (int x = 1; x < N; x++) {
+//         if ((r + x) < N && (c + x) < N && board[r + x][c + x] == 'Q') {
+//             return false;
+//         }
+//         if ((r + x) < N && (c - x) >= 0 && board[r + x][c - x] == 'Q') {
+//             return false;
+//         }
+//         if ((r - x) >= 0 && (c - x) >= 0 && board[r - x][c - x] == 'Q') {
+//             return false;
+//         }
+//         if ((r - x) >= 0 && (c + x) < N && board[r - x][c + x] == 'Q') {
+//             return false;
+//         }
+//         if ((r - x) >= 0 && board[r - x][c] == 'Q') {
+//             return false;
+//         }
+//         if ((r + x) < N && board[r + x][c] == 'Q') {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
+
+// void helperNQueens(int n, vector<string> board, vector<vector<string>>& result) {
+//     if (board.size() == n) {
+//         result.push_back(board);
+//         return;
+//     }
+//     for (int i = 0; i < n; i++) {
+//         board.push_back(mp[i]);
+//         if (checkLastRow(board, i)) {
+//             helperNQueens(n, board, result);
+//         }
+//     }
+//     return;
+// }
+
+// vector<vector<string>> solveNQueens(int n) {
+//     vector<vector<string>> result = {};
+//     vector<string> board = {};
+//     helperNQueens(n, board, result);
+//     return result;
+// }
