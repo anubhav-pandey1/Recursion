@@ -38,7 +38,6 @@ void helperNQueens(int n, vector<vector<string>>& result, vector<int>& prevCols,
             helperNQueens(n, result, prevCols, r + 1);
         }
     }
-    r--;
     prevCols.pop_back();
 }
 
@@ -48,6 +47,7 @@ vector<vector<string>> solveNQueens(int numPieces) {
     helperNQueens(numPieces, result, prevCols, 0);
     return result;
 }
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
