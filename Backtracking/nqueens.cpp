@@ -102,60 +102,72 @@ int main() {
 // .................
 
 
-// Alt implementation (Incorrect):
-
-// int numPieces;
-// map<int, string> mp;
-// string s(numPieces, '.');
-// for (int i = 0; i < numPieces; i++) {
-//     s[i] = 'Q';
-//     mp[i] = s;
-//     s[i] = '.';
-// }
+// Alt implementation (Incorrect): boolCheck implemented for NxN but wasn't working correctly for 1xN, 2xN...
+// Now it does after updating to include RN
 
 // bool checkLastRow(vector<string>& board, int c) {
+//     int RN = board.size();
 //     int r = board.size() - 1;
 //     int N = board[0].size();
 //     for (int x = 1; x < N; x++) {
-//         if ((r + x) < N && (c + x) < N && board[r + x][c + x] == 'Q') {
-//             return false;
+//         if ((r + x) < RN && (c + x) < N) {
+//             if (board[r + x][c + x] == 'Q')
+//                 return false;
 //         }
-//         if ((r + x) < N && (c - x) >= 0 && board[r + x][c - x] == 'Q') {
-//             return false;
+//         if ((r + x) < RN && (c - x) >= 0) {
+//             if (board[r + x][c - x] == 'Q')
+//                 return false;
 //         }
-//         if ((r - x) >= 0 && (c - x) >= 0 && board[r - x][c - x] == 'Q') {
-//             return false;
+//         if ((r - x) >= 0 && (c - x) >= 0) {
+//             if (board[r - x][c - x] == 'Q')
+//                 return false;
 //         }
-//         if ((r - x) >= 0 && (c + x) < N && board[r - x][c + x] == 'Q') {
-//             return false;
+//         if ((r - x) >= 0 && (c + x) < N) {
+//             if (board[r - x][c + x] == 'Q')
+//                 return false;
 //         }
-//         if ((r - x) >= 0 && board[r - x][c] == 'Q') {
-//             return false;
+//         if ((r - x) >= 0) {
+//             if (board[r - x][c] == 'Q')
+//                 return false;
 //         }
-//         if ((r + x) < N && board[r + x][c] == 'Q') {
-//             return false;
+//         if ((r + x) < RN) {
+//             if (board[r + x][c] == 'Q')
+//                 return false;
 //         }
 //     }
 //     return true;
 // }
 
-// void helperNQueens(int n, vector<string> board, vector<vector<string>>& result) {
+// void helperNQueens(int n, vector<string>& board, const map<int, string>& mp, vector<vector<string>>& result) {
 //     if (board.size() == n) {
 //         result.push_back(board);
+//         board.pop_back();
 //         return;
 //     }
 //     for (int i = 0; i < n; i++) {
-//         board.push_back(mp[i]);
+//         string s = mp.at(i);
+//         board.push_back(s);
 //         if (checkLastRow(board, i)) {
-//             helperNQueens(n, board, result);
+//             helperNQueens(n, board, mp, result);
+//         }
+//         else {
+//             board.pop_back();
 //         }
 //     }
-//     return;
+//     // board.pop_back();
+//     // return;
 // }
 
 // vector<vector<string>> solveNQueens(int n) {
-//     vector<vector<string>> result = {};
-//     vector<string> board = {};
-//     helperNQueens(n, board, result);
+//     vector<vector<string>> result;
+//     map<int, string> mp;
+//     string s(n, '.');
+//     for (int i = 0; i < n; i++) {
+//         s[i] = 'Q';
+//         mp[i] = s;
+//         s[i] = '.';
+//     }
+//     vector<string> board;
+//     helperNQueens(n, board, mp, result);
 //     return result;
 // }
