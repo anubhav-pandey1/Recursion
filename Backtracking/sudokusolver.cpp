@@ -20,24 +20,24 @@ bool checkInsertion(vector<vector<char>>& board, int row, int col, char test) {
 
 bool solveSudoku(vector<vector<char>>& board) {                                 // Can track row and col for more efficient implementation
     for (int r = 0; r < 9; r++) {                                               // Looping a 2-D matrix to find the next empty cell to fill
-        for (int c = 0; c < 9; c++) {                                           // Base case will hit after both the loops have ended ie. no more cells
+        for (int c = 0; c < 9; c++) {                                           // Base case will hit after both the loops have ended ie. no more cells to check
             if (board[r][c] == '.') {                                           // Check if the cell is empty, otherwise move to next value of c
                 for (char n = '1'; n <= '9'; n++) {                             // These chars represent our choices to fill the board, '1' + 1 == '2'
                     if (checkInsertion(board, r, c, n)) {                       // Check if the char n can be inserted in the board at (r, c)
                         board[r][c] = n;                                        // If true, insert n in the board at (r, c) and prepare for recursive step
-                        // bool flag = sudokuSolver(board);                     // A flag based implementation can also be used inside the if (flag == true)
+                        // bool flag = sudokuSolver(board);                     // A flag based implementation can also be used inside the if() (flag == true)
                         if (solveSudoku(board) == true) {                       // Recursive call inside the checkInsertion{}, else it will fill the next eligible n
                             return true;                                        // If recursive call returns true, you return true back to the upper call
-                        }                                                       // Can get overflow if recursion not inside cI{} as base case will not get hit
+                        }                                                       // Can get stack overflow if recursion not inside cI{} as it will execute for n even when cI(n) is false
                         else {                                                  // If true not returned from lower levels -> base case not hit -> wrong route taken
                             board[r][c] = '.';                                  // Backtracking step: Revert the insertion of n if false and move to the next n value
                         }                                                       // This must be inside the cI{} as well, complementing the boolean recursive call
                     }                                                           // Check the next value of n, unless the recursion has already fallen to base case
                 }                                                               // If none of the n values can be filled, return false so that it can backtrack further
-                return false;                                                   // This false value is not returned if recursion falls to the base case, starts returning trues
+                return false;                                                   // This false is not returned if recursion falls to the base case, starts returning trues back
             }                                                                   // Once it starts returning trues for all preceeding calls, the main call will return true and end
-        }                                                                       // A dry-run is must to understand this recursive pattern without a clear base case
-    }                                                                           // Also, instead of precalculating the index of empty cell, recursion is in the loops
+        }                                                                       // A dry-run is must to understand this weird recursive pattern without a clearly visible base case
+    }                                                                           // Also, instead of precalculating the index of empty cell, recursion is in the searching loops
     return true;                                                                // Base case:- After r == 8 and c == 8, it skips return false and jumps to this value
 }                                                                               // If there are no more empty cells left, it also jumps straight to the base case
 
