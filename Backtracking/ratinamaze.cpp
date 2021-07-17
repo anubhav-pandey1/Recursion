@@ -1,70 +1,44 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-bool validMove(vector<vector<int>>& mz, int r, int c, char move) {  // Bounding function to check for valid moves
-    int n = mz.size();                                              // Can take n as input too
-    switch (move) {                                                 // Switch works with ints and chars
-    case 'D' :
-        if ((r + 1) < n && mz[r + 1][c] == 1) {                     // If the next cell is in bounds and is equal to 1
-            return true;
-        }
-        break;
-    case 'R' :
-        if ((c + 1) < n && mz[r][c + 1] == 1) {
-            return true;
-        }
-        break;
-    case 'U' :
-        if ((r - 1) >= 0 && mz[r - 1][c] == 1) {
-            return true;
-        }
-        break;
-    case 'L' :
-        if ((c - 1) >= 0 && mz[r][c - 1] == 1) {
-            return true;
-        }
-        break;
-    default:
-        break;
+// D L R U is taken in lexicographic order so that output is in lexicographic order without sorting
+// 0 is D, 1 is L, 2 is R, 3 is U
+// So, change in (r, c) for L is r + rowDirs[1], c + colDirs[1]
+const int rowDirs[4] = {1, 0, 0, -1};
+const int colDirs[4] = {0, -1, 1, 0};
+const char dirs[4] = {'D', 'L', 'R', 'U'};
+
+bool validMove(vector<vector<int>>& mz, int r, int c, int move) {  // Bounding function to check for valid moves
+    int n = mz.size();                                             // Can take n as input too
+    int nextR = r + rowDirs[move];                                 // Calculating nextRow and nextCol using the precalculated changes in coordinates
+    int nextC = c + colDirs[move];                                 // This can be implemented directly inside the solver without a bounding function
+    if (nextR >= 0 && nextR < n && nextC >= 0 and nextC < n and mz[nextR][nextC] == 1) {
+        return true;
     }
     return false;                                                   // If the next cell is not in bounds/is not equal to 1
 }
 
-void mazePath(vector<vector<int>>& mz, vector<string>& output, string& path, int r, int c) {
+void mazePath(vector<vector<int>>& mz, vector<string>& output, string path, int r, int c) {
     int n = mz.size();
     if (r == (n - 1) && c == (n - 1)) {                             // Base case: The last cell coords are passed in the recursive call
         output.push_back(path);                                     // Path already has all the dirs since the last dir was added in last call
-        path.pop_back();                                            // As it must go back to previous call ie. backtracking the move which lead to last cell
-        mz[r][c] = 1;                                               // Not required as last cell value is not modified
+        // path.pop_back();                                            // As it must go back to previous call ie. backtracking the move which lead to last cell
+        // mz[r][c] = 1;                                               // Not required as last cell value is not modified
         return;                                                     // Return to prev. call with (r-1, c) or (r, c-1) and one less char in path
     }
 
-    mz[r][c] = 0;                                                   // As soon as (r, c) is passed in mazePath(), the cell is visited so change 1 to 0
-    vector<char> dirs = {'D', 'R', 'U', 'L'};                       // Store all the possible dirs so that they can be iterated over: these are choices
-    for (char& dir : dirs) {                                        // Choices: Iterating over dirs one by one to cover all possibilities for all cells
+    // mz[r][c] = 0;                                                   // As soon as (r, c) is passed in mazePath(), the cell is visited so change 1 to 0
+    for (int dir = 0; dir < 4; dir++) {                                        // Choices: Iterating over dirs one by one to cover all possibilities for all cells
         if (validMove(mz, r, c, dir)) {                             // Checking if the particular dir is a valid move for (r, c)
-            path.push_back(dir);                                    // Add the dir to the path string if it is a valid move to make
-            switch (dir) {                                          // Now make the move and go to the next cell
-            case 'D' :
-                mazePath(mz, output, path, r + 1, c);               // Go to the next row if the dir == 'D'
-                break;
-            case 'R' :
-                mazePath(mz, output, path, r, c + 1);
-                break;
-            case 'U' :
-                mazePath(mz, output, path, r - 1, c);
-                break;
-            case 'L' :
-                mazePath(mz, output, path, r, c - 1);
-                break;
-            default:
-                break;
-            }
+            mz[r][c] = 0;
+            // path.push_back(dirs[dir]);                                    // Add the dir to the path string if it is a valid move to make
+            mazePath(mz, output, path + dirs[dir], r + rowDirs[dir], c + colDirs[dir]);
+            mz[r][c] = 1;
         }                                                           // Code arrives here if the move doesn't work out ie. stuck at next cell
     }                                                               // Nothing else to do inside the loop now so try the next possible dir
-    mz[r][c] = 1;                                                   // Backtracking: If no dirs work out, make (r, c) visitable and go to prev cell
-    if (!path.empty())                                              // Check as it tries to pop() path == "" after dir loop ends for root node (initial call)
-        path.pop_back();                                            // Remove the last move/dir from path as we are going back to (r-x, c-y) from (r, c)
+    // mz[r][c] = 1;                                                   // Backtracking: If no dirs work out, make (r, c) visitable and go to prev cell
+    // if (!path.empty())                                              // Check as it tries to pop() path == "" after dir loop ends for root node (initial call)
+    //     path.pop_back();                                            // Remove the last move/dir from path as we are going back to (r-x, c-y) from (r, c)
 }                                                                   // Implicit return to prev. call in the call stack as nothing else left to do
 
 vector<string> findPath(vector<vector<int>>& mz, int n) {           // Decorator type function to take the inputs in proper format
@@ -74,7 +48,7 @@ vector<string> findPath(vector<vector<int>>& mz, int n) {           // Decorator
     vector<string> output;                                          // Vector to store all the valid paths generated by the solver
     string path;
     mazePath(mz, output, path, 0, 0);                               // Output vector is passed by reference
-    sort(output.begin(), output.end());                             // Sorting to generate the desired lexicographically sorted vector
+    // sort(output.begin(), output.end());                             // Sorting to generate the desired lexicographically sorted vector
     return output;
 }
 
@@ -119,6 +93,85 @@ int main() {
     }
     return 0;
 }
+
+// My old, inconcise implementation:-
+
+// bool validMove(vector<vector<int>>& mz, int r, int c, char move) {  // Bounding function to check for valid moves
+//     int n = mz.size();                                              // Can take n as input too
+//     switch (move) {                                                 // Switch works with ints and chars
+//     case 'D' :
+//         if ((r + 1) < n && mz[r + 1][c] == 1) {                     // If the next cell is in bounds and is equal to 1
+//             return true;
+//         }
+//         break;
+//     case 'R' :
+//         if ((c + 1) < n && mz[r][c + 1] == 1) {
+//             return true;
+//         }
+//         break;
+//     case 'U' :
+//         if ((r - 1) >= 0 && mz[r - 1][c] == 1) {
+//             return true;
+//         }
+//         break;
+//     case 'L' :
+//         if ((c - 1) >= 0 && mz[r][c - 1] == 1) {
+//             return true;
+//         }
+//         break;
+//     default:
+//         break;
+//     }
+//     return false;                                                   // If the next cell is not in bounds/is not equal to 1
+// }
+
+// void mazePath(vector<vector<int>>& mz, vector<string>& output, string& path, int r, int c) {
+//     int n = mz.size();
+//     if (r == (n - 1) && c == (n - 1)) {                             // Base case: The last cell coords are passed in the recursive call
+//         output.push_back(path);                                     // Path already has all the dirs since the last dir was added in last call
+//         path.pop_back();                                            // As it must go back to previous call ie. backtracking the move which lead to last cell
+//         mz[r][c] = 1;                                               // Not required as last cell value is not modified
+//         return;                                                     // Return to prev. call with (r-1, c) or (r, c-1) and one less char in path
+//     }
+
+//     mz[r][c] = 0;                                                   // As soon as (r, c) is passed in mazePath(), the cell is visited so change 1 to 0
+//     vector<char> dirs = {'D', 'R', 'U', 'L'};                       // Store all the possible dirs so that they can be iterated over: these are choices
+//     for (char& dir : dirs) {                                        // Choices: Iterating over dirs one by one to cover all possibilities for all cells
+//         if (validMove(mz, r, c, dir)) {                             // Checking if the particular dir is a valid move for (r, c)
+//             path.push_back(dir);                                    // Add the dir to the path string if it is a valid move to make
+//             switch (dir) {                                          // Now make the move and go to the next cell
+//             case 'D' :
+//                 mazePath(mz, output, path, r + 1, c);               // Go to the next row if the dir == 'D'
+//                 break;
+//             case 'R' :
+//                 mazePath(mz, output, path, r, c + 1);
+//                 break;
+//             case 'U' :
+//                 mazePath(mz, output, path, r - 1, c);
+//                 break;
+//             case 'L' :
+//                 mazePath(mz, output, path, r, c - 1);
+//                 break;
+//             default:
+//                 break;
+//             }
+//         }                                                           // Code arrives here if the move doesn't work out ie. stuck at next cell
+//     }                                                               // Nothing else to do inside the loop now so try the next possible dir
+//     mz[r][c] = 1;                                                   // Backtracking: If no dirs work out, make (r, c) visitable and go to prev cell
+//     if (!path.empty())                                              // Check as it tries to pop() path == "" after dir loop ends for root node (initial call)
+//         path.pop_back();                                            // Remove the last move/dir from path as we are going back to (r-x, c-y) from (r, c)
+// }                                                                   // Implicit return to prev. call in the call stack as nothing else left to do
+
+// vector<string> findPath(vector<vector<int>>& mz, int n) {           // Decorator type function to take the inputs in proper format
+//     if (mz[0][0] == 0) {                                            // If the first cell itself can't be visited, return "-1"
+//         return {"-1"};
+//     }
+//     vector<string> output;                                          // Vector to store all the valid paths generated by the solver
+//     string path;
+//     mazePath(mz, output, path, 0, 0);                               // Output vector is passed by reference
+//     sort(output.begin(), output.end());                             // Sorting to generate the desired lexicographically sorted vector
+//     return output;
+// }
 
 // Test cases:
 
