@@ -4,51 +4,41 @@ using namespace std;
 // D L R U is taken in lexicographic order so that output is in lexicographic order without sorting
 // 0 is D, 1 is L, 2 is R, 3 is U
 // So, change in (r, c) for L is r + rowDirs[1], c + colDirs[1]
-const int rowDirs[4] = {1, 0, 0, -1};
-const int colDirs[4] = {0, -1, 1, 0};
-const char dirs[4] = {'D', 'L', 'R', 'U'};
+const int rowDirs[4] = {1, 0, 0, -1};                                 // Storing all the deltaR (change in r) for each of the 4 dirs
+const int colDirs[4] = {0, -1, 1, 0};                                 // Storing all the deltaC (change in c) for each of the 4 dirs
+const char dirs[4] = {'D', 'L', 'R', 'U'};                            // Storing all the dirs, can be stored as a string too
 
-bool validMove(vector<vector<int>>& mz, int r, int c, int move) {  // Bounding function to check for valid moves
-    int n = mz.size();                                             // Can take n as input too
-    int nextR = r + rowDirs[move];                                 // Calculating nextRow and nextCol using the precalculated changes in coordinates
-    int nextC = c + colDirs[move];                                 // This can be implemented directly inside the solver without a bounding function
-    if (nextR >= 0 && nextR < n && nextC >= 0 and nextC < n and mz[nextR][nextC] == 1) {
-        return true;
+void mazePath(vector<vector<int>>& mz, vector<string>& output, string path, int r, int c, int n) {
+    if (r == (n - 1) && c == (n - 1)) {                               // Base case: The last cell coords are passed in the recursive call
+        output.push_back(path);                                       // Path already has all the dirs since the last dir was added in last call
+        return;                                                       // Return to prev. call with (r-1, c) or (r, c-1) and one less char in path
     }
-    return false;                                                   // If the next cell is not in bounds/is not equal to 1
-}
+    // mz[r][c] = 0;                                                  // Parallelism2 - We can modify the cell here, but then backtracking must be outside the loop
+    for (int dir = 0; dir < 4; dir++) {                               // Choices: Iterating over dirs one by one to cover all possibilities for all cells
+        int nextR = r + rowDirs[dir];                                 // Calculating nextR, nextC using pre-stored deltaR and deltaC values in arrays
+        int nextC = c + colDirs[dir];                                 // No bounding function required as 1 if() can do the trick with the deltaR-deltaC simplication
+        if (nextR >= 0 && nextR < n && nextC >= 0 and nextC < n and mz[nextR][nextC] == 1) {    // Checking if the particular dir is a valid move for (r, c)
+            mz[r][c] = 0;                                             // Parallelism - Modify (r, c) to be visited if you know you can go to (nextR, next C)
+            // path.push_back(dirs[dir]);                             // Modifying path in current call means when it backtracks to this call, path will have 1 extra dir
+            mazePath(mz, output, path + dirs[dir], nextR, nextC, n);  // Alternatively, we can pass modified path by value in the recursive call to the next call without^
+            // path.pop_back();                                       // The extra dir in path must be popped if it was modified in the current call before recursion
+            mz[r][c] = 1;                                             // Parallelism - Backtracks the (r, c) to being unvisited (ie. 1) before trying the next dir in the loop
+        }                                                             // Code arrives here after backtracking if some call down the line was unsuccessful ie. no dir worked out
+    }                                                                 // Nothing else to do inside the loop now so try the next possible dir - but only after backtracking
+}                                                                     // Implicit return to prev. call in the call stack as nothing else left to do
 
-void mazePath(vector<vector<int>>& mz, vector<string>& output, string path, int r, int c) {
-    int n = mz.size();
-    if (r == (n - 1) && c == (n - 1)) {                             // Base case: The last cell coords are passed in the recursive call
-        output.push_back(path);                                     // Path already has all the dirs since the last dir was added in last call
-        // path.pop_back();                                            // As it must go back to previous call ie. backtracking the move which lead to last cell
-        // mz[r][c] = 1;                                               // Not required as last cell value is not modified
-        return;                                                     // Return to prev. call with (r-1, c) or (r, c-1) and one less char in path
-    }
+// Note:- If you change mz[r][c] to 0 the first thing in the mazePath() function call (ie. outside loop), then you must backtrack outside the loop as well
+// Parallelism - if you change to 0 just after the function is called, you must revert just before the function returns (ie. base case and implicit return)
+// In this implementation, we change to 0 just before the recursive call for (nextR, nextC) so we backtrack just after the recursive call returns back
+// Also, if you modify the path string in the current call before sending to the next recursive call, you must pop() it as soon as you return to the current call
 
-    // mz[r][c] = 0;                                                   // As soon as (r, c) is passed in mazePath(), the cell is visited so change 1 to 0
-    for (int dir = 0; dir < 4; dir++) {                                        // Choices: Iterating over dirs one by one to cover all possibilities for all cells
-        if (validMove(mz, r, c, dir)) {                             // Checking if the particular dir is a valid move for (r, c)
-            mz[r][c] = 0;
-            // path.push_back(dirs[dir]);                                    // Add the dir to the path string if it is a valid move to make
-            mazePath(mz, output, path + dirs[dir], r + rowDirs[dir], c + colDirs[dir]);
-            mz[r][c] = 1;
-        }                                                           // Code arrives here if the move doesn't work out ie. stuck at next cell
-    }                                                               // Nothing else to do inside the loop now so try the next possible dir
-    // mz[r][c] = 1;                                                   // Backtracking: If no dirs work out, make (r, c) visitable and go to prev cell
-    // if (!path.empty())                                              // Check as it tries to pop() path == "" after dir loop ends for root node (initial call)
-    //     path.pop_back();                                            // Remove the last move/dir from path as we are going back to (r-x, c-y) from (r, c)
-}                                                                   // Implicit return to prev. call in the call stack as nothing else left to do
-
-vector<string> findPath(vector<vector<int>>& mz, int n) {           // Decorator type function to take the inputs in proper format
-    if (mz[0][0] == 0) {                                            // If the first cell itself can't be visited, return "-1"
+vector<string> findPath(vector<vector<int>>& mz, int n) {             // Decorator type function to take the inputs in proper format
+    if (mz[0][0] == 0) {                                              // If the first cell itself can't be visited, return "-1"
         return {"-1"};
     }
-    vector<string> output;                                          // Vector to store all the valid paths generated by the solver
+    vector<string> output;                                            // Vector to store all the valid paths generated by the solver
     string path;
-    mazePath(mz, output, path, 0, 0);                               // Output vector is passed by reference
-    // sort(output.begin(), output.end());                             // Sorting to generate the desired lexicographically sorted vector
+    mazePath(mz, output, path, 0, 0, n);                              // Output vector is passed by reference
     return output;
 }
 
@@ -68,7 +58,7 @@ int main() {
         cin >> n;
         vector<vector<int>> maze;
         for (int r = 0; r < n; r++) {
-            vector<int> row;                                        // Can also have int based inputs, just include spaces in inputs
+            vector<int> row;                                          // Can also have int based inputs, just include spaces in inputs
             string line;
             cin >> line;
             for (int c = 0; c < n; c++) {
@@ -78,7 +68,7 @@ int main() {
             maze.push_back(row);
         }
 
-        // for (int r = 0; r < n; r++) {                            // Test for bounding function
+        // for (int r = 0; r < n; r++) {                              // Test for bounding function
         //     for (int c = 0; c < n; c++) {
         //         cout << checkCell(maze, r, c, 'L') << " ";
         //     }
@@ -95,6 +85,10 @@ int main() {
 }
 
 // My old, inconcise implementation:-
+// 1. deltaR-deltaC simplication can help us avoid the repetitive explicit handling of individual dirs
+// 2. No bounding function required after using (1) since it just needs one single if condition
+// 3. Instead of passing path by ref, pass it by value and modify it inside the recursive call only for the next call on stack
+// 4. Maintain parallelism of modification and backtracking ie. if (r,c) modified directly after function call then backtracking just before function return
 
 // bool validMove(vector<vector<int>>& mz, int r, int c, char move) {  // Bounding function to check for valid moves
 //     int n = mz.size();                                              // Can take n as input too
