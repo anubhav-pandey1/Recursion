@@ -1,6 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// Only works for test cases where interesction is at the front and end due to boolean nature of helphers
+// Use integer-based intersection locators to solve this issue, but this is getting too complex
+
+void printBoard(vector<string>& board) {
+    for (int r = 0; r < 10; r++) {
+        cout << board[r] << endl;
+    }
+    cout << "___________" << endl;
+}
+
 bool isVertical(vector<string>& board, int r, int c) {      // TODO: Check from end of word too, not just beginning
     if (board[r + 1][c] == '-' && board[r][c + 1] != '-') {
         return true;
@@ -10,14 +20,63 @@ bool isVertical(vector<string>& board, int r, int c) {      // TODO: Check from 
     }
 }
 
+int findLength(vector<string>& board, int r, int c, bool vertical) {
+    int n = 1; // Assuming (r, c) is a dash
+    if (vertical) {
+        while (board[r + 1][c] == '-') {
+            n++;
+            r++;
+        }
+    }
+    else {
+        while (board[r][c + 1] == '-') {
+            n++;
+            c++;
+        }
+    }
+    return n;
+}
+
 bool isIntersect(vector<string>& board, int r, int c, bool vertical) {  // TODO: Can intersect with end of word too, this one only has beginning covered
-    if (!vertical && ((r > 0 && isalpha(board[r - 1][c])) || (r < 9 && isalpha(board[r + 1][c])))) { // Horizontal me vertical intersection??
+    int len = findLength(board, r, c, vertical);
+    if (vertical && ((r > 0 && isalpha(board[r - 1][c])) || ((r + len) <= 9 && isalpha(board[r + len][c])))) { // Horizontal me vertical intersection??
         return true;
     }
-    else if (vertical && ((c > 0 && isalpha(board[r][c - 1])) || (c < 9 && isalpha(board[r][c + 1])))) {
+    else if (!vertical && ((c > 0 && isalpha(board[r][c - 1])) || ((c + len) <= 9 && isalpha(board[r][c + len])))) {
+        return true;
+    }
+    return false;                                                      // Fail, can intersect in the middle as well
+}
+
+bool intersectFront(vector<string>& board, int r, int c, bool vertical) {  // Only use if isIntersect is true
+    if (vertical && ((r > 0 && isalpha(board[r - 1][c])))) {
+        return true;
+    }
+    else if (!vertical && ((c > 0 && isalpha(board[r][c - 1])))) {         // Fail, can intersect in the middle as well
         return true;
     }
     return false;
+}
+
+char findIntersect(vector<string>& board, int r, int c, bool vertical) {  // Only use if isIntersect is true
+    bool front = intersectFront(board, r, c, vertical);
+    int len = findLength(board, r, c, vertical);
+    if (front) {
+        if (vertical) {
+            return board[r - 1][c];
+        }
+        else {
+            return board[r][c - 1];
+        }
+    }
+    else {
+        if (vertical) {
+            return board[r + len][c];
+        }
+        else {
+            return board[r][c + len];
+        }
+    }
 }
 
 int findTotalLength(vector<string>& board, int r, int c, bool vertical) {
@@ -45,32 +104,22 @@ int findTotalLength(vector<string>& board, int r, int c, bool vertical) {
     return n;
 }
 
-int findLength(vector<string>& board, int r, int c, bool vertical) {
-    int n = 1; // Assuming (r, c) is a dash
-    if (vertical) {
-        while (board[r + 1][c] == '-') {
-            n++;
-            r++;
-        }
-    }
-    else {
-        while (board[r][c + 1] == '-') {
-            n++;
-            c++;
-        }
-    }
-    return n;
-}
-
 void fillBlanks(vector<string>& board, int r, int c, bool vertical, string word) {
     bool intersect = isIntersect(board, r, c, vertical);
+    bool front = intersectFront(board, r, c, vertical);
     int len = word.size();
-    if (vertical && intersect) {        // TODO: Refactor
-        r--;
+    if (vertical && intersect) {        // TODO: Refactor, can't go r-- or c-- if intersects at back
+        if (front)                      // Put inside as can only be used if isIntersect is true
+            r--;
+        else                            // Reduce len if intersects at back to avoid last char
+            len--;
     }
     else if (!vertical && intersect) {  // Do these blocks even matter? Overwriting
         // len--;
-        c--;
+        if (front)                      // Put inside as can only be used if isIntersect is true
+            c--;
+        else
+            len--;                      // If intersects at back, reduce length
     }
 
     if (vertical) {
@@ -103,20 +152,57 @@ bool solveCrossword(vector<string>& board, vector<string>& words) {
         for (int c = 0; c < 10; c++) {
             if (board[r][c] == '-') {
                 bool vertical = isVertical(board, r, c);
+                bool intersect = isIntersect(board, r, c, vertical);
                 int totalLen = findTotalLength(board, r, c, vertical);
                 int length = findLength(board, r, c, vertical);
                 for (int i = 0; i < words.size(); i++) {
-                    if (words[i].size() == totalLen) {
+                    if (words[i].size() == totalLen && !intersect) {
                         string temp = words[i];
                         fillBlanks(board, r, c, vertical, words[i]);
+                        // printBoard(board); // Visualize backtracking
                         words[i] = "";
                         if (solveCrossword(board, words) == true) {
                             return true;
                         }
                         else {
                             unfillBlanks(board, r, c, length, vertical);
+                            // printBoard(board); // Visualize backtracking
                             words[i] = temp;
                             // return false;
+                        }
+                    }
+                    else if (words[i].size() == totalLen && intersect) {
+                        string temp = words[i];
+                        char common = findIntersect(board, r, c, vertical);
+                        bool front = intersectFront(board, r, c, vertical);
+                        if (front && common == words[i][0]) {
+                            fillBlanks(board, r, c, vertical, words[i]);
+                            // printBoard(board); // Visualize backtracking
+                            words[i] = "";
+                            if (solveCrossword(board, words) == true) {
+                                return true;
+                            }
+                            else {
+                                unfillBlanks(board, r, c, length, vertical);
+                                // printBoard(board); // Visualize backtracking
+                                words[i] = temp;
+                                // return false;
+                            }
+                        }
+                        else if (!front && common == words[i][words[i].size() - 1]) {
+                            string temp = words[i];
+                            fillBlanks(board, r, c, vertical, words[i]);
+                            // printBoard(board); // Visualize backtracking
+                            words[i] = "";
+                            if (solveCrossword(board, words) == true) {
+                                return true;
+                            }
+                            else {
+                                unfillBlanks(board, r, c, length, vertical);
+                                // printBoard(board); // Visualize backtracking
+                                words[i] = temp;
+                                // return false;
+                            }
                         }
                     }
                 }
@@ -157,26 +243,88 @@ int main() {
 
         // Tests for helper functions:-
 
-        // int row = 0, col = 9;
+        // int row = 1, col = 0;
         // bool type = isVertical(board, row, col);
-        // cout << isVertical(board, 8, 9) << endl; // Checking (8, 9) before filling
+        // // cout << isVertical(board, 8, 9) << endl; // Checking (8, 9) before filling
         // int len = findTotalLength(board, row, col, type);
         // cout << len << endl;
-        // fillBlanks(board, row, col, type, words[0]);
+        // fillBlanks(board, row, col, type, words[2]);
 
-        // fillBlanks overwrites during intersections
-        // row = 5, col = 9;
+        // // fillBlanks overwrites during intersections
+        // row = 2, col = 1;
         // bool type2 = isVertical(board, row, col);
-        // cout << type2 << endl;
-        // cout << isIntersect(board, row, col, type2) << endl;
-        // fillBlanks(board, row, col, type2, words[2]);
+        // cout << type2 << endl;                                   // Right - Must be 0 for (1,0) and (2,1)
+        // cout << isIntersect(board, row, col, type2) << endl;     // Right - Must be 1 for (1,0) and (2,1)
+        // cout << findLength(board, row, col, type2) << endl;      // Right - Must be 6 for (1,0) and (2,1)
+        // cout << findTotalLength(board, row, col, type2) << endl; // Right - Must be 7 for (1,0) and (2,1)
+        // fillBlanks(board, row, col, type2, words[1]);
 
         // Output:-
         solveCrossword(board, words);
-
-        for (int r = 0; r < 10; r++) {
-            cout << board[r] << endl;
-        }
+        printBoard(board);
     }
     return 0;
 }
+
+// Test cases:
+
+// Inputs:
+
+// 2
+// +++++++++-
+// -++++++++-
+// -------++-
+// -++++++++-
+// -++++++++-
+// -++++-----
+// ------+++-
+// -++++++++-
+// +---------
+// ++++++++++
+// 6
+// CHEMISTRY
+// HISTORY
+// PHYSICS
+// MATHS
+// GEOGRAPHY
+// CIVICS
+// +-++++++++
+// +-++++++++
+// +-++++-+++
+// +-++++-+++
+// +-++++-+++
+// +-++++-+++
+// +-++++-+++
+// +-+------+
+// +-++++++++
+// +++-------
+// 4
+// PUNJAB
+// JHARKHAND
+// MIZORAM
+// MUMBAI
+
+// Outputs:
+
+// +++++++++C
+// P++++++++H
+// HISTORY++E
+// Y++++++++M
+// S++++++++I
+// I++++MATHS
+// CIVICS+++T
+// S++++++++R
+// +GEOGRAPHY
+// ++++++++++
+// ___________
+// +-++++++++
+// +-++++++++
+// +-++++-+++
+// +-++++-+++
+// +-++++-+++
+// +-++++-+++
+// +-++++-+++
+// +-+------+
+// +-++++++++
+// +++-------
+// ___________
