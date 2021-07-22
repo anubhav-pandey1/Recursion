@@ -20,8 +20,8 @@ bool canPlaceWordHorizontally(vector<string>& board, string word, int r, int c) 
         if (c + col > 9) { // Out of bounds
             return false;
         }
-        if (board[r][c + col] != '-' || board[r][c + col] != word[col]) { // If the space has the same character as the word at the same index
-            return false;
+        if (board[r][c + col] != '-' && board[r][c + col] != word[col]) { // If the space has the same character as the word at the same index
+            return false;                                                 // Here && must be used and not ||
         }
     }
 
@@ -40,7 +40,7 @@ bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {
         if (r + row > 9) { // Out of bounds
             return false;
         }
-        if (board[r + row][c] != '-' || board[r + row][c] != word[row]) { // If the space has the same character as the word at the same index
+        if (board[r + row][c] != '-' && board[r + row][c] != word[row]) { // If the space has the same character as the word at the same index
             return false;
         }
     }
@@ -49,22 +49,28 @@ bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {
 }
 
 vector<bool> horizontallyPlaceWord(vector<string>& board, string word, int r, int c) {
-    vector<bool> wePlaced(word.size(), false); // All false initially
+    vector<bool> wePlaced; // All false initially
     for (int col = 0; col < word.size(); col++) {
         if (board[r][c + col] == '-') {
             board[r][c + col] = word[col];
-            wePlaced[col] = true;
+            wePlaced.push_back(true);
+        }
+        else {
+            wePlaced.push_back(false);
         }
     }
     return wePlaced;
 }
 
 vector<bool> verticallyPlaceWord(vector<string>& board, string word, int r, int c) {
-    vector<bool> wePlaced(word.size(), false); // All false initially
+    vector<bool> wePlaced; // All false initially
     for (int row = 0; row < word.size(); row++) {
         if (board[r + row][c] == '-') {
             board[r + row][c] = word[row];
-            wePlaced[row] = true;
+            wePlaced.push_back(true);
+        }
+        else {
+            wePlaced.push_back(false);
         }
     }
     return wePlaced;
@@ -427,14 +433,14 @@ int main() {
 // +GEOGRAPHY
 // ++++++++++
 // ___________
-// +-++++++++
-// +-++++++++
-// +-++++-+++
-// +-++++-+++
-// +-++++-+++
-// +-++++-+++
-// +-++++-+++
-// +-+------+
-// +-++++++++
-// +++-------
+// +J++++++++
+// +H++++++++
+// +A++++P+++
+// +R++++U+++
+// +K++++N+++
+// +H++++J+++
+// +A++++A+++
+// +N+MUMBAI+
+// +D++++++++
+// +++MIZORAM
 // ___________
