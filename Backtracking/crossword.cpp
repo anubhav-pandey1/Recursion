@@ -8,27 +8,27 @@ void printBoard(vector<string>& board) {
     cout << "___________" << endl;
 }
 
-bool canPlaceWordHorizontally(vector<string>& board, string word, int r, int c) {      // Trials and tribulations type bounding function
-    if (c > 0 && board[r][c - 1] != '+') {
-        return false;
+bool canPlaceWordHorizontally(vector<string>& board, string word, int r, int c) {         // Trials and tribulations type bounding function
+    if (c > 0 && board[r][c - 1] != '+') {                                                // If col index is 1 or greater, and the prev. cell is not a + (ie. word does not fit)
+        return false;                                                                     // Then (r, c) is not a cell where the word can be placed horizontally
     }
-    else if (c + word.size() < 10 && board[r][c + word.size()] != '+') {
-        return false;
+    else if (c + word.size() < 10 && board[r][c + word.size()] != '+') {                  // If the cell just next to the end of the to-be-inserted word ie. dist of word.size is in bounds,
+        return false;                                                                     // and if it is not a + (ie. word does not fit), then word cant be placed at (r, c)
     }
 
-    for (int col = 0; col < word.size(); col++) {
-        if (c + col > 9) { // Out of bounds
+    for (int col = 0; col < word.size(); col++) {                                         // Loop over the next word.size cells to check them for the word-to-be-inserted
+        if (c + col > 9) {                                                                // If at any moment, the index goes greater than 9, it goes out of bounds
             return false;
         }
-        if (board[r][c + col] != '-' && board[r][c + col] != word[col]) { // If the space has the same character as the word at the same index
-            return false;                                                 // Here && must be used and not ||
-        }
+        if (board[r][c + col] != '-' && board[r][c + col] != word[col]) {                 // If the cell is not blank and the cell does not have the same character as the word at the same index
+            return false;                                                                 // Here && must be used and not || as we have != in the individual conditions (check Truth table)
+        }                                                                                 // The same as:- !(board[r][c + col] == '-' || board[r][c + col] == word[col])
     }
 
-    return true; // Survives all trials and tribulations
+    return true;                                                                          // Return true if it survives all trials and tribulations
 }
 
-bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {
+bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {           // Similar to above
     if (r > 0 && board[r - 1][c] != '+') {
         return false;
     }
@@ -37,20 +37,20 @@ bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {
     }
 
     for (int row = 0; row < word.size(); row++) {
-        if (r + row > 9) { // Out of bounds
+        if (r + row > 9) {
             return false;
         }
-        if (board[r + row][c] != '-' && board[r + row][c] != word[row]) { // If the space has the same character as the word at the same index
+        if (board[r + row][c] != '-' && board[r + row][c] != word[row]) {
             return false;
         }
     }
 
-    return true; // Survives all trials and tribulations
+    return true;
 }
 
-vector<bool> horizontallyPlaceWord(vector<string>& board, string word, int r, int c) {
-    vector<bool> wePlaced; // All false initially
-    for (int col = 0; col < word.size(); col++) {
+vector<bool> horizontallyPlaceWord(vector<string>& board, string word, int r, int c) {    // Return a boolean array to store if we placed the letter at the index or not
+    vector<bool> wePlaced;                                                                // Will be used while unplacing to only unplace the letters we placed
+    for (int col = 0; col < word.size(); col++) {                                         // Iterate over word.size cells beginning at (r, c) to place chars one by one
         if (board[r][c + col] == '-') {
             board[r][c + col] = word[col];
             wePlaced.push_back(true);
