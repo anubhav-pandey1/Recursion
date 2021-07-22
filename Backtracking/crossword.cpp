@@ -8,27 +8,27 @@ void printBoard(vector<string>& board) {
     cout << "___________" << endl;
 }
 
-bool canPlaceWordHorizontally(vector<string>& board, string word, int r, int c) {         // Trials and tribulations type bounding function
-    if (c > 0 && board[r][c - 1] != '+') {                                                // If col index is 1 or greater, and the prev. cell is not a + (ie. word does not fit)
-        return false;                                                                     // Then (r, c) is not a cell where the word can be placed horizontally
+bool canPlaceWordHorizontally(vector<string>& board, string word, int r, int c) {          // Trials and tribulations type bounding function
+    if (c > 0 && board[r][c - 1] != '+') {                                                 // If col index is 1 or greater, and the prev. cell is not a + (ie. word does not fit)
+        return false;                                                                      // Then (r, c) is not a cell where the word can be placed horizontally
     }
-    else if (c + word.size() < 10 && board[r][c + word.size()] != '+') {                  // If the cell just next to the end of the to-be-inserted word ie. dist of word.size is in bounds,
-        return false;                                                                     // and if it is not a + (ie. word does not fit), then word cant be placed at (r, c)
+    else if (c + word.size() < 10 && board[r][c + word.size()] != '+') {                   // If the cell just next to the end of the to-be-inserted word ie. dist of word.size is in bounds,
+        return false;                                                                      // and if it is not a + (ie. word does not fit), then word cant be placed at (r, c)
     }
 
-    for (int col = 0; col < word.size(); col++) {                                         // Loop over the next word.size cells to check them for the word-to-be-inserted
-        if (c + col > 9) {                                                                // If at any moment, the index goes greater than 9, it goes out of bounds
+    for (int col = 0; col < word.size(); col++) {                                          // Loop over the next word.size cells to check them for the word-to-be-inserted
+        if (c + col > 9) {                                                                 // If at any moment, the index goes greater than 9, it goes out of bounds
             return false;
         }
-        if (board[r][c + col] != '-' && board[r][c + col] != word[col]) {                 // If the cell is not blank and the cell does not have the same character as the word at the same index
-            return false;                                                                 // Here && must be used and not || as we have != in the individual conditions (check Truth table)
-        }                                                                                 // The same as:- !(board[r][c + col] == '-' || board[r][c + col] == word[col])
+        if (board[r][c + col] != '-' && board[r][c + col] != word[col]) {                  // If the cell is not blank and the cell does not have the same character as the word at the same index
+            return false;                                                                  // Here && must be used and not || as we have != in the individual conditions (check Truth table)
+        }                                                                                  // The same as:- !(board[r][c + col] == '-' || board[r][c + col] == word[col])
     }
 
-    return true;                                                                          // Return true if it survives all trials and tribulations
+    return true;                                                                           // Return true if it survives all trials and tribulations
 }
 
-bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {           // Similar to above
+bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) {            // Similar to above
     if (r > 0 && board[r - 1][c] != '+') {
         return false;
     }
@@ -48,22 +48,22 @@ bool canPlaceWordVertically(vector<string>& board, string word, int r, int c) { 
     return true;
 }
 
-vector<bool> horizontallyPlaceWord(vector<string>& board, string word, int r, int c) {    // Return a boolean array to store if we placed the letter at the index or not
-    vector<bool> wePlaced;                                                                // Will be used while unplacing to only unplace the letters we placed
-    for (int col = 0; col < word.size(); col++) {                                         // Iterate over word.size cells beginning at (r, c) to place chars one by one
-        if (board[r][c + col] == '-') {
-            board[r][c + col] = word[col];
-            wePlaced.push_back(true);
+vector<bool> horizontallyPlaceWord(vector<string>& board, string word, int r, int c) {     // Return a boolean array to store if we placed the letter at the index or not
+    vector<bool> wePlaced;                                                                 // Will be used while unplacing to only unplace the letters we placed
+    for (int col = 0; col < word.size(); col++) {                                          // Iterate over word.size cells beginning at (r, c) to place chars one by one in the blanks
+        if (board[r][c + col] == '-') {                                                    // If the cell is blank, then add a char from the word at the cell's location
+            board[r][c + col] = word[col];                                                 // The char should be at the same index inside the word string as the current cell inside the blank space
+            wePlaced.push_back(true);                                                      // Edit the wePlaced array at the same index to be true to signify we placed a char at the index
         }
-        else {
-            wePlaced.push_back(false);
+        else {                                                                             // If there is no blank at the location ie. it is already filled by a char, then
+            wePlaced.push_back(false);                                                     // Edit the wePlaced array at the same index to be false to signify no char was placed by us
         }
     }
-    return wePlaced;
+    return wePlaced;                                                                       // Return wePlaced along with editing the cells in the board
 }
 
-vector<bool> verticallyPlaceWord(vector<string>& board, string word, int r, int c) {
-    vector<bool> wePlaced; // All false initially
+vector<bool> verticallyPlaceWord(vector<string>& board, string word, int r, int c) {       // Similar to above
+    vector<bool> wePlaced;
     for (int row = 0; row < word.size(); row++) {
         if (board[r + row][c] == '-') {
             board[r + row][c] = word[row];
@@ -76,15 +76,15 @@ vector<bool> verticallyPlaceWord(vector<string>& board, string word, int r, int 
     return wePlaced;
 }
 
-void unplaceWordHorizontally(vector<string>& board, vector<bool> wePlaced, int r, int c) {
-    for (int col = 0; col < wePlaced.size(); col++) {
-        if (wePlaced[col]) {
-            board[r][c + col] = '-';
+void unplaceWordHorizontally(vector<string>& board, vector<bool> wePlaced, int r, int c) { // Unplace function for backtracking steps for horizontal insertions
+    for (int col = 0; col < wePlaced.size(); col++) {                                      // Iterate over the word.size cells where the word had been inserted previously
+        if (wePlaced[col]) {                                                               // wePlaced[col] tells us if we placed a char at the particular index (r, c + col)
+            board[r][c + col] = '-';                                                       // If we did place it, unplace the char by reversing it to -
         }
     }
 }
 
-void unplaceWordVertically(vector<string>& board, vector<bool> wePlaced, int r, int c) {
+void unplaceWordVertically(vector<string>& board, vector<bool> wePlaced, int r, int c) {   // Similar to above
     for (int row = 0; row < wePlaced.size(); row++) {
         if (wePlaced[row]) {
             board[r + row][c] = '-';
@@ -92,23 +92,23 @@ void unplaceWordVertically(vector<string>& board, vector<bool> wePlaced, int r, 
     }
 }
 
-void solveCrossword(vector<string>& board, vector<string>& words, int wordIdx) {
-    if (wordIdx == words.size()) {
-        printBoard(board);
-        return;
+void solveCrossword(vector<string>& board, vector<string>& words, int wordIdx) {           // Levels -> words, hence base case will be based on words
+    if (wordIdx == words.size()) {                                                         // Base case: wordIdx goes from 0 to (words.size - 1) in the words array
+        printBoard(board);                                                                 // Print the board using the helper when wordIdx exceeds (words.size - 1)
+        return;                                                                            // Return to prev. calls in the call stack
     }
 
-    string word = words[wordIdx];
-    for (int r = 0; r < 10; r++) {
-        for (int c = 0; c < 10; c++) {
-            if (board[r][c] == '-' || board[r][c] == word[0]) {
-                if (canPlaceWordHorizontally(board, word, r, c)) {
-                    vector<bool> wePlacedH = horizontallyPlaceWord(board, word, r, c);
-                    solveCrossword(board, words, wordIdx + 1);
-                    unplaceWordHorizontally(board, wePlacedH, r, c);
-                }
-                if (canPlaceWordVertically(board, word, r, c)) {
-                    vector<bool> wePlacedV = verticallyPlaceWord(board, word, r, c);
+    string word = words[wordIdx];                                                          // The current level (ie. word) is at the wordIdx index in the words array
+    for (int r = 0; r < 10; r++) {                                                         // (r, c) locations are options for the current level and we must find the best one
+        for (int c = 0; c < 10; c++) {                                                     // Every word (level) has a set of correct options (r, c) to be placed at in the board
+            if (board[r][c] == '-' || board[r][c] == word[0]) {                            // Try to insert a word if the (r, c) cell is blank or it's char == first char of word
+                if (canPlaceWordHorizontally(board, word, r, c)) {                         // Check if we can place the word horizontally at (r, c). If yes,...
+                    vector<bool> wePlacedH = horizontallyPlaceWord(board, word, r, c);     // place the word horizontally and obtain a wePlaced array telling the indices where we placed chars
+                    solveCrossword(board, words, wordIdx + 1);                             // Recursion to look for correct (r, c) for the next word at (wordIdx + 1) in the words array
+                    unplaceWordHorizontally(board, wePlacedH, r, c);                       // Parallelism - Unplace the previously placed word if base case not hit in above step^
+                }                                                                          // This is the backtracking step following the principle of parallelism to undo the action
+                if (canPlaceWordVertically(board, word, r, c)) {                           // Check if we can place the word vertically instead at (r, c). If yes,...
+                    vector<bool> wePlacedV = verticallyPlaceWord(board, word, r, c);       // Same steps as above^
                     solveCrossword(board, words, wordIdx + 1);
                     unplaceWordVertically(board, wePlacedV, r, c);
                 }
@@ -145,7 +145,7 @@ int main() {
             words.push_back(word);
         }
 
-        // Tests for helper functions:-
+        // Tests for helper functions for my incorrect implementation:-
 
         // int row = 1, col = 0;
         // bool type = isVertical(board, row, col);
@@ -165,7 +165,6 @@ int main() {
 
         // Output:-
         solveCrossword(board, words, 0);
-        // printBoard(board);
     }
     return 0;
 }
